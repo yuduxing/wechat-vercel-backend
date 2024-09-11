@@ -1,43 +1,26 @@
-const express = require("express");
+import express from 'express';
+import cors from 'cors'
+import bodyParser from 'body-parser'
+import helmet from 'helmet';
 
-const appId = process.env.AppID;
-const appSecret = process.env.AppSecret;
-
-/**
- * 封装request请求
- */
-const requestAsync = (url) => {
-    return new Promise((reslove, reject) => {
-        request({url: url}, (err, res, body) => {
-            if (err) return reject(err)
-            return reslove(body)
-        })
-    })
-}
-
-/**
- * code 换取 session_key
- */
-const getSessionKey = (code) => {
-    const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appId}&secret=${appSecret}&js_code=${code}&grant_type=authorization_code`
-    return this.requestAsync(url)
-}
+import { RouterInit } from './router/index.js';
 
 const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(helmet());
 
-app.get("/", (req, res) => res.send("Express on Vercel" + appId));
+RouterInit(app)
 
-app.post("/api/wechatLogin", (req, res) => {
-    const code = req.body.code
-    getSessionKey(code)
-    .then(doc => {
-        rsp = JSON.parse(doc)
-        if (rsp && rsp.errmsg) return rsp.errmsg
-        
-        if (rsp && rsp.openid) return rsp.openid
-    })
-})
+// 统一处理错误
+app.use((err, req, res, next) => {
+    res.json({ errcode: err.code || 100, errmsg: err.message });
+});
+
+// 不匹配的路由 返回404
+app.get('*', (req, res) => {
+    res.sendStatus(404);
+});
 
 app.listen(3000, () => console.log("Server ready on port 3000."));
-
-module.exports = app;
