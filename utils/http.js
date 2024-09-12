@@ -11,3 +11,11 @@ export const requestAsync = (url) => {
         })
     })
 }
+
+export const success = (data) => {
+    return {
+        code: 0,
+        msg: "success",
+        data: data,
+    }
+}
