@@ -2,6 +2,7 @@ import express from 'express';
 import { getSessionKey } from '../utils/wechat.js';
 import { createToken } from '../utils/token.js';
 import { success } from '../utils/http.js';
+import { createUser, getUserByOpenId } from '../model/users.js';
 
 const router = express.Router();
 
@@ -14,13 +15,33 @@ router.post('/wechatLogin', async (req, res, next) => {
       throw new Error('微信登陆错误');
     }
 
-    //TODO: 保存openid，换取uid
+    const openId = resultJson.openid;
+    const userInfo = getUserByOpenId(openId);
+    let userId = 0;
+    // 用户不存在就新建
+    if (userInfo === null) {
+      const userData = {
+        openid: openId,
+      };
+      const createdUser = await createUser(userData);
+      if (createdUser === null) {
+        throw new Error('新建用户错误');
+      }
+      userId = createdUser.userid;
+    } else {
+      userId = userInfo.userid;
+    }
+
     const loginData = {
-      uid: resultJson.openid,
+      uid: userId,
     };
 
     const token = await createToken(loginData);
     loginData.token = token;
+    if (userInfo) {
+      loginData.nickname = userInfo.nickname;
+      loginData.avatar = userInfo.avatar;
+    }
 
     res.json(success(loginData));
   } catch (error) {

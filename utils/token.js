@@ -1,11 +1,12 @@
+import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from "../config/index.js"
 
 export const getUserId = (token) => {
     if (!token) {
         return 0;
     }
-    const result = this.parse(token);
-    if (think.isEmpty(result) || result.uid <= 0) {
+    const result = parseToken(token);
+    if (!result || result.uid <= 0) {
         return 0;
     }
     return result.uid;
