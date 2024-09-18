@@ -7,7 +7,7 @@ export const authenticateToken = async (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1]; // 从 Authorization 头中获取 token
     try {
         if (!token) {
-            return res.sendStatus(401); // 未提供 token
+          throw new Error('token不存在'); // 未提供 token
         }
 
         const tokenUserId = getUserId(token);
