@@ -9,14 +9,18 @@ const router = express.Router();
 router.post('/wechatLogin', async (req, res, next) => {
   try {
     const code = req.body.code;
+    console.log(code);
     const result = await getSessionKey(code);
     const resultJson = JSON.parse(result);
     if (!resultJson.openid) {
       throw new Error('微信登陆错误');
     }
+    console.log(resultJson);
 
     const openId = resultJson.openid;
-    const userInfo = getUserByOpenId(openId);
+    console.log(openId);
+    const userInfo = await getUserByOpenId(openId);
+    console.log("userInfo:" + JSON.stringify(userInfo));
     let userId = 0;
     // 用户不存在就新建
     if (userInfo === null) {
@@ -24,14 +28,14 @@ router.post('/wechatLogin', async (req, res, next) => {
         openid: openId,
       };
       const createdUser = await createUser(userData);
-      if (createdUser === null) {
+      if (createdUser === null || createUser.length != 1) {
         throw new Error('新建用户错误');
       }
-      userId = createdUser.userid;
+      userId = createdUser[0].userid;
     } else {
       userId = userInfo.userid;
     }
-
+    console.log("userId:" + userId);
     const loginData = {
       uid: userId,
     };
